@@ -32,13 +32,17 @@ export default function MainScreen() {
   }, [selectedId])
 
   return (
-    <div className="flex" style={{ minHeight: 'calc(100vh - 113px)' }}>
+    <div
+      className="bg-gray-50 flex gap-5 px-6 py-6"
+      style={{ minHeight: 'calc(100vh - 113px)' }}
+    >
       <SessionSidebar
         sessions={sessions}
         loading={loadingSessions}
         selectedId={selectedId}
         onSelect={setSelectedId}
       />
+
       <FilePanel
         selectedId={selectedId}
         detail={detail}
