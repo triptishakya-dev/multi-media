@@ -8,8 +8,8 @@ export default function Page() {
           Upload Your Documents
         </h1>
         <p className="text-gray-500 text-base leading-relaxed">
-          Select one or more files to get started. Supports PDF, Word, PowerPoint,
-          and more. Your files are processed securely and instantly.
+          Select one or more files to get started. Supports PDF, images, and videos.
+          Your files are processed securely and instantly.
         </p>
       </div>
 
