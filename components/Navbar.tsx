@@ -13,18 +13,8 @@ export default function Navbar() {
           </Link>
         </li>
         <li>
-          <Link href="/about" className="hover:text-gray-300 transition-colors">
-            About
-          </Link>
-        </li>
-        <li>
-          <Link href="/work" className="hover:text-gray-300 transition-colors">
-            Work
-          </Link>
-        </li>
-        <li>
-          <Link href="/contact" className="hover:text-gray-300 transition-colors">
-            Contact
+          <Link href="/main-screen" className="hover:text-gray-300 transition-colors">
+            Main Screen
           </Link>
         </li>
       </ul>
