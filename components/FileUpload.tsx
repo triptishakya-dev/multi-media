@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Toast, { type ToastData } from "@/components/Toast";
 
 type UploadedFile = {
   id: string;
@@ -30,6 +31,14 @@ export default function FileUpload() {
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [toast, setToast] = useState<ToastData | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showToast = useCallback((message: string, type: ToastData["type"]) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    setToast({ message, type });
+    toastTimerRef.current = setTimeout(() => setToast(null), 4000);
+  }, []);
 
   function addFiles(incoming: FileList | null) {
     if (!incoming) return;
@@ -55,26 +64,54 @@ export default function FileUpload() {
     setUploading(true);
     setProgress(0);
 
-    await new Promise<void>((resolve) => {
-      let current = 0;
-      const interval = setInterval(() => {
-        current += Math.random() * 18 + 5;
-        if (current >= 100) {
-          current = 100;
-          clearInterval(interval);
-          setProgress(100);
-          setTimeout(resolve, 400);
-        } else {
-          setProgress(Math.round(current));
-        }
-      }, 120);
-    });
+    const formData = new FormData();
+    files.forEach(({ file }) => formData.append("files", file));
 
-    router.push("/main-screen");
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            setProgress(Math.round((e.loaded / e.total) * 100));
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            setProgress(100);
+            resolve();
+          } else {
+            let message = "Upload failed";
+            try {
+              const body = JSON.parse(xhr.responseText);
+              if (body?.error) message = body.error;
+            } catch {}
+            reject(new Error(message));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error("Network error — please try again"));
+        xhr.onabort = () => reject(new Error("Upload cancelled"));
+
+        xhr.open("POST", "/api/upload");
+        xhr.send(formData);
+      });
+
+      showToast("Files uploaded successfully!", "success");
+      setTimeout(() => router.push("/main-screen"), 800);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Upload failed";
+      showToast(message, "error");
+      setUploading(false);
+      setProgress(0);
+    }
   }
 
   return (
     <div className="w-full max-w-2xl mx-auto flex flex-col gap-6">
+      <Toast toast={toast} />
+
       {/* Drop zone */}
       <div
         onClick={() => inputRef.current?.click()}
